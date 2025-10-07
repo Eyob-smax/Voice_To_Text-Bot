@@ -1,6 +1,7 @@
 import { Telegraf, Markup } from "telegraf";
 import axios from "axios";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 import { transcribeAudioBuffer } from "./assembly.js";
 
 dotenv.config();
@@ -10,25 +11,71 @@ if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set in environment variables.");
 }
 
+// --- Nodemailer Setup ---
+const EMAIL_USER = process.env.EMAIL_USER;
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_RECIPIENT = process.env.EMAIL_RECIPIENT;
+
+// Only create a transporter if the necessary variables are set
+let transporter = null;
+if (EMAIL_USER && EMAIL_PASS && EMAIL_RECIPIENT) {
+  transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: {
+      user: EMAIL_USER,
+      pass: EMAIL_PASS,
+    },
+  });
+} else {
+  console.warn(
+    "⚠️ Email alert variables (EMAIL_USER, EMAIL_PASS, EMAIL_RECIPIENT) are not fully configured. Email alerts are disabled."
+  );
+}
+
+async function sendErrorEmail(subject, body) {
+  if (!transporter) return;
+
+  const mailOptions = {
+    from: `NestJS Bot Monitor <${EMAIL_USER}>`,
+    to: EMAIL_RECIPIENT,
+    subject: `[BOT ERROR] ${subject}`,
+    html: `<p><strong>Time:</strong> ${new Date().toISOString()}</p><hr><p>${body.replace(
+      /\n/g,
+      "<br>"
+    )}</p>`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✉️ Email alert sent: ${subject}`);
+  } catch (mailError) {
+    console.error("❌ Failed to send email alert:", mailError);
+  }
+}
+
 export const bot = new Telegraf(BOT_TOKEN);
 
 const TEXT = {
   welcome: (firstName) =>
     `👋 Welcome, *${firstName || "there"}*! I'm your *Voice Transcriber Bot* 🗣️ 
-Send/Forward me a voice message, music clip, or audio file — and I’ll convert it to text for you.`,
+**Forward** me a voice message, music clip, or audio file — and I’ll convert it to text for you.`,
 
   help: `📘 *How to use this bot:*\n
-1️⃣ Send me any *audio file* (voice note, music, or speech).\n
+1️⃣ Forward me any *audio file* (voice note, music, or speech).\n
 2️⃣ Wait a few seconds while I transcribe it ⏳\n
 3️⃣ I’ll reply with the *text version* of your recording.`,
 
   about: `🤖 *About the Bot:*\n
-This bot is a demonstration of converting various audio formats into text using a *Node.js* backend with the *Telegraf* framework. 
-The actual speech-to-text processing is handled by an external service (AssemblyAI).\n
+\n
+Can't listen to that voice message right now? 🤫\n
+Use me! Forward it to me any audio (voice notes, music clips, or files), and I'll instantly convert the sound into **readable text**. 📝\n
+\n
+I make sure you never miss a word, even in a noisy or quiet place. 🚀\n
+\n
 *Developer:* An AI Assistant\n
-*Source:* Open-source (conceptual)`,
+*Version:* 1.1`,
 
-  processing: "🎧 Got your audio! Processing in memory...",
+  processing: "🎧 Got your audio! Processing, wait a moment...",
   unsupported:
     "❌ **Unsupported File Type.** Please send a valid audio message, voice note, or a document with an audio mime type.",
   noSpeech:
@@ -140,19 +187,26 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
         ]),
       }
     );
+    // ...
   } catch (error) {
     let errorMessage = TEXT.unknownError;
+    let emailSubject = "Unknown Error in Audio Handler";
+    let emailBody = `Error: ${error.message}\nStack: ${error.stack}\nUser: ${ctx.from.id} (${ctx.from.first_name})`;
 
     if (axios.isAxiosError(error) || error.message?.includes("Assembly")) {
       errorMessage = TEXT.apiError;
+      emailSubject = "Transcription Service/Download Failure";
       console.error("External API/Download Error:", error.message);
     } else if (error.message?.includes("unsupported")) {
       errorMessage =
         "⚠️ *Download Error.* Failed to fetch the file from Telegram.";
+      emailSubject = "Telegram File Download Failure";
       console.error("Telegram File Download Error:", error.message);
     } else {
       console.error("Voice handling error:", error);
     }
+
+    await sendErrorEmail(emailSubject, emailBody);
 
     if (sentMessage) {
       ctx.telegram.editMessageText(
@@ -175,7 +229,24 @@ bot.on("message", async (ctx) => {
   );
 });
 
-bot.catch((err, ctx) => {
+// --- GLOBAL ERROR HANDLER ---
+bot.catch(async (err, ctx) => {
+  const emailSubject = `GLOBAL CRITICAL ERROR: ${ctx.updateType} update`;
+  const emailBody = `Error: ${err.message}\nStack: ${err.stack}\nUpdate Type: ${
+    ctx.updateType
+  }\nUser: ${ctx.from?.id || "N/A"}`;
+
   console.error(`Global error for ${ctx.updateType}:`, err);
+
+  // Send Email Alert
+  await sendErrorEmail(emailSubject, emailBody);
+
+  // Notify User
   ctx.reply(TEXT.unknownError, { parse_mode: "Markdown" });
 });
+// --- End of Global Error Handler ---
+
+bot.launch();
+console.log("🤖 Voice Transcriber Bot is running...");
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
