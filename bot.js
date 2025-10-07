@@ -201,14 +201,17 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
     if (axios.isAxiosError(error) || error.message?.includes("Assembly")) {
       errorMessage = TEXT.apiError;
       emailSubject = "Transcription Service/Download Failure";
-      console.error("External API/Download Error:", error.message);
     } else if (error.message?.includes("unsupported")) {
       errorMessage =
         "⚠️ *Download Error.* Failed to fetch the file from Telegram.";
-      emailSubject = "Telegram File Download Failure";
-      console.error("Telegram File Download Error:", error.message);
+      emailSubject = `${
+        ctx.from.first_name || "Unknown User"
+      }  Telegram File Download Failure`;
     } else {
-      console.error("Voice handling error:", error);
+      emailSubject = "Critical Bot Error";
+      emailBody = `Critical error in bot:\nError: ${error.message}\nStack: ${error.stack}\nUser: ${ctx.from.id} (${ctx.from.first_name})`;
+      await sendErrorEmail(emailSubject, emailBody);
+      return ctx.reply(errorMessage, { parse_mode: "Markdown" });
     }
 
     await sendErrorEmail(emailSubject, emailBody);
