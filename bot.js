@@ -10,7 +10,7 @@ if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set in environment variables.");
 }
 
-const bot = new Telegraf(BOT_TOKEN);
+export const bot = new Telegraf(BOT_TOKEN);
 
 const TEXT = {
   welcome: (firstName) =>
@@ -185,8 +185,3 @@ bot.catch((err, ctx) => {
   console.error(`Global error for ${ctx.updateType}:`, err);
   ctx.reply(TEXT.unknownError, { parse_mode: "Markdown" });
 });
-
-bot.launch();
-console.log("🤖 Voice Transcriber Bot is running...");
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
