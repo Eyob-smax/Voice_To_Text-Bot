@@ -132,12 +132,6 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
         parse_mode: "Markdown",
         ...Markup.inlineKeyboard([
           [
-            Markup.button.url(
-              "📋 Copy Text",
-              `https://t.me/${ctx.botInfo.username}?start=copy_${btoa(text)}`
-            ),
-          ],
-          [
             Markup.button.callback(
               "🔁 Transcribe Another",
               "TRANSCRIBE_ANOTHER"
