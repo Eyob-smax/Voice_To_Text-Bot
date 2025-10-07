@@ -209,7 +209,9 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
       emailSubject = "Critical Bot Error";
       emailBody = `Critical error in bot:\nError: ${error.message}\nStack: ${error.stack}\nUser: ${ctx.from.id} (${ctx.from.first_name})`;
       await sendErrorEmail(emailSubject, emailBody);
-      return ctx.reply(errorMessage, { parse_mode: "Markdown" });
+      return ctx.reply("🛑 Message too long to process", {
+        parse_mode: "Markdown",
+      });
     }
 
     await sendErrorEmail(emailSubject, emailBody);
