@@ -145,6 +145,10 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
     )
       fileId = message.document.file_id;
     else {
+      await sendErrorEmail(
+        "Unsupported File Type Received",
+        `User: ${ctx.from.id} (${ctx.from.first_name}) sent an unsupported file type.`
+      );
       return ctx.reply(TEXT.unsupported, { parse_mode: "Markdown" });
     }
 
