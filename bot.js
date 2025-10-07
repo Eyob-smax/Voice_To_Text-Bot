@@ -225,6 +225,10 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
         { parse_mode: "Markdown" }
       );
     } else {
+      await sendErrorEmail(
+        "Error Before Sending Message",
+        `User: ${ctx.from.id} (${ctx.from.first_name}) encountered an error before any message was sent.`
+      );
       ctx.reply(errorMessage, { parse_mode: "Markdown" });
     }
   }
