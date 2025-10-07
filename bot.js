@@ -11,12 +11,10 @@ if (!BOT_TOKEN) {
   throw new Error("BOT_TOKEN is not set in environment variables.");
 }
 
-// --- Nodemailer Setup ---
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_RECIPIENT = process.env.EMAIL_RECIPIENT;
 
-// Only create a transporter if the necessary variables are set
 let transporter = null;
 if (EMAIL_USER && EMAIL_PASS && EMAIL_RECIPIENT) {
   transporter = nodemailer.createTransport({
@@ -241,8 +239,3 @@ bot.catch(async (err, ctx) => {
 
   ctx.reply(TEXT.unknownError, { parse_mode: "Markdown" });
 });
-
-bot.launch();
-console.log("🤖 Voice Transcriber Bot is running...");
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
