@@ -229,7 +229,6 @@ bot.on("message", async (ctx) => {
   );
 });
 
-// --- GLOBAL ERROR HANDLER ---
 bot.catch(async (err, ctx) => {
   const emailSubject = `GLOBAL CRITICAL ERROR: ${ctx.updateType} update`;
   const emailBody = `Error: ${err.message}\nStack: ${err.stack}\nUpdate Type: ${
@@ -238,13 +237,10 @@ bot.catch(async (err, ctx) => {
 
   console.error(`Global error for ${ctx.updateType}:`, err);
 
-  // Send Email Alert
   await sendErrorEmail(emailSubject, emailBody);
 
-  // Notify User
   ctx.reply(TEXT.unknownError, { parse_mode: "Markdown" });
 });
-// --- End of Global Error Handler ---
 
 bot.launch();
 console.log("🤖 Voice Transcriber Bot is running...");
