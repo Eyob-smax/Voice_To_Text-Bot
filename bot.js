@@ -163,6 +163,10 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
     const text = await transcribeAudioBuffer(audioBuffer);
 
     if (!text || text.trim() === "") {
+      await sendErrorEmail(
+        "Transcription Failed - No Speech Detected",
+        `User: ${ctx.from.id} (${ctx.from.first_name}) had a transcription failure with no detectable speech.`
+      );
       return ctx.telegram.editMessageText(
         sentMessage.chat.id,
         sentMessage.message_id,
@@ -189,7 +193,6 @@ bot.on(["voice", "audio", "video_note", "document"], async (ctx) => {
         ]),
       }
     );
-    // ...
   } catch (error) {
     let errorMessage = TEXT.unknownError;
     let emailSubject = "Unknown Error in Audio Handler";
