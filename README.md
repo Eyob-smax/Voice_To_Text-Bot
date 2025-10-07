@@ -43,5 +43,5 @@ This project was made purely **for fun and learning**, but it turned out to be r
 
 ### 1️⃣ Clone the repo
 ```bash
-git clone https://github.com/yourusername/voice-transcriber-bot.git
+git clone https://github.com/Eyob-smax/Voice_To_Text-Bot.git
 cd voice-transcriber-bot
