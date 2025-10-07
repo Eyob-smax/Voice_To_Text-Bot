@@ -56,7 +56,8 @@ export const bot = new Telegraf(BOT_TOKEN);
 const TEXT = {
   welcome: (firstName) =>
     `👋 Welcome, *${firstName || "there"}*! I'm your *Voice Transcriber Bot* 🗣️ 
-**Forward** me a voice message, music clip, or audio file — and I’ll convert it to text for you.`,
+**Forward** me a voice message, music clip, or audio file — and I’ll convert it to text for you.\n
+💬 I share more stuff like this on my channel — TechVibe! [Join here](https://t.me/devwitheyob)`,
 
   help: `📘 *How to use this bot:*\n
 1️⃣ Forward me any *audio file* (voice note, music, or speech).\n
@@ -64,13 +65,10 @@ const TEXT = {
 3️⃣ I’ll reply with the *text version* of your recording.`,
 
   about: `🤖 *About the Bot:*\n
-\n
 Can't listen to that voice message right now? 🤫\n
 Use me! Forward it to me any audio (voice notes, music clips, or files), and I'll instantly convert the sound into **readable text**. 📝\n
-\n
 I make sure you never miss a word, even in a noisy or quiet place. 🚀\n
-\n
-*Developer:* An AI Assistant\n
+*Developer:* Developed by [Eyob S.](https://t.me/devwitheyob) \n
 *Version:* 1.1`,
 
   processing: "🎧 Got your audio! Processing, wait a moment...",
